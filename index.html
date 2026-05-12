@@ -1,0 +1,451 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Project 3 Report</title>
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+
+    <style>
+        :root {
+            --color-neutral-95: hsl(220 10% 95%);
+            --color-neutral-90: hsl(220 10% 90%);
+            --color-neutral-80: hsl(220 10% 80%);
+            --color-neutral-70: hsl(220 10% 70%);
+            --color-neutral-60: hsl(220 10% 60%);
+            --color-neutral-50: hsl(220 10% 50%);
+            --color-neutral-40: hsl(220 10% 40%);
+            --color-neutral-30: hsl(220 10% 30%);
+            --color-neutral-20: hsl(220 10% 20%);
+            --color-neutral-10: hsl(220 10% 10%);
+        }
+
+        html {
+            font: 100%/1.5 system-ui;
+            counter-reset: figure;
+            background: var(--color-neutral-95);
+            max-width: min(90vw, 80em);
+            margin: 0 auto;
+        }
+
+        h1,
+        h2,
+        h3,
+        h4,
+        h5,
+        h6 {
+            line-height: 1.1;
+            font-weight: 600;
+            text-wrap: balance;
+        }
+
+        h1,
+        h2 {
+            border-bottom: 1px solid var(--color-neutral-80);
+            padding-bottom: 0.2em;
+        }
+
+        h1 {
+            margin-block: 1em 0.5rem;
+            font-size: clamp(2.5em, 150% + 2vh + 2vw, 10vmin);
+            font-weight: 800;
+        }
+
+        h1 small {
+            display: block;
+            width: fit-content;
+            padding: 0.2em 0.5em;
+            margin-inline: auto;
+            color: white;
+            background: var(--color-neutral-40);
+            font-size: 40%;
+            text-transform: uppercase;
+            white-space: nowrap;
+        }
+
+        h2 {
+            font-size: 180%;
+            color: var(--color-neutral-30);
+        }
+
+        h3 {
+            font-size: 130%;
+        }
+
+        ul,
+        ol {
+            padding-inline-start: 2em;
+        }
+
+        li::marker {
+            color: var(--color-neutral-40);
+        }
+
+        li + li {
+            margin-top: 0.2em;
+        }
+
+        header {
+            padding-block: 1em;
+            text-align: center;
+        }
+
+        main {
+            background: white;
+            color: var(--color-neutral-20);
+            border-radius: 1rem;
+            padding: 0.1rem 2rem;
+        }
+
+        figure {
+            margin: 1em 0;
+            padding: 0.5rem;
+            margin-inline: -0.5em;
+            border: 1px solid var(--color-neutral-80);
+            box-shadow: 0 0.1em 0.2em var(--color-neutral-95);
+            text-align: center;
+            background: white;
+        }
+
+        figure > figcaption {
+            font: 500 75% system-ui;
+            background: var(--color-neutral-95);
+            padding: 0.5rem;
+            margin: -0.5rem;
+            margin-top: 0.5rem;
+            counter-increment: figure;
+            text-align: left;
+        }
+
+        figure > figcaption::before {
+            content: "Figure " counter(figure) ": ";
+            font-weight: bold;
+            color: var(--color-neutral-40);
+        }
+
+        .viz-title {
+            color: var(--color-neutral-20);
+            border-bottom: none;
+            margin-bottom: 0.5rem;
+        }
+
+        .controls {
+            margin: 0 auto 20px auto;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+            background: #2a2a35;
+            padding: 10px 20px;
+            border-radius: 30px;
+            border: 1px solid #444;
+            color: white;
+            width: fit-content;
+        }
+
+        input[type="range"] {
+            width: 300px;
+            cursor: pointer;
+        }
+
+        #year-display {
+            font-size: 24px;
+            font-weight: bold;
+            color: #ffb142;
+            width: 60px;
+        }
+
+        #map-container {
+            position: relative;
+            background-color: #0f0f13;
+            border: 1px solid #333;
+            border-radius: 8px;
+            overflow: hidden;
+            max-width: 80%;
+            margin: 0 auto;
+        }
+
+        #map-container svg {
+            display: block;
+            max-width: 100%;
+            height: auto;
+        }
+
+        .country {
+            fill: #2a2a35;
+            stroke: #444;
+            stroke-width: 0.5px;
+        }
+
+        .grid-point {
+            opacity: 0.8;
+            transition: fill 0.3s ease;
+        }
+
+        .grid-point:hover {
+            opacity: 1;
+            stroke: white;
+            stroke-width: 1px;
+            cursor: crosshair;
+        }
+
+        .tooltip {
+            position: absolute;
+            background: rgba(0, 0, 0, 0.9);
+            color: #fff;
+            padding: 10px;
+            border-radius: 4px;
+            pointer-events: none;
+            font-size: 14px;
+            opacity: 0;
+            transition: opacity 0.2s;
+            border: 1px solid #555;
+            z-index: 10;
+            text-align: left;
+        }
+
+        .legend text {
+            fill: #ccc;
+            font-size: 12px;
+        }
+    </style>
+</head>
+
+<body>
+    <header>
+        <h1>
+            <small>Project 3</small>
+            Interactive Visualization
+        </h1>
+
+        <p>
+            <strong>Gabriel Borjas-Perez, Jared Parra, Dylan Craver, Christian Ramirez</strong> —
+            <em>gborjasperez@ucsd.edu; japarra@ucsd.edu; dcraver@ucsd.edu; chr008@ucsd.edu</em>
+        </p>
+    </header>
+
+    <main>
+        <h2>Dataset: Coupled Model Intercomparison Project (CMIP6)</h2>
+
+        <section>
+            <h3>Our Visualization</h3>
+
+            <figure>
+                <h3 class="viz-title">Global Temperature Anomalies from 2015–2025</h3>
+
+                <div class="controls">
+                    <label for="year-slider">Select Year:</label>
+                    <input type="range" id="year-slider" min="2015" max="2025" step="1" value="2015">
+                    <span id="year-display">2015</span>
+                </div>
+
+                <div id="map-container">
+                    <div id="tooltip" class="tooltip"></div>
+                </div>
+
+                <figcaption>
+                    Interactive map of global temperature anomalies from 2015 to 2025 using CESM2 SSP585 yearly climate projection data. The slider lets viewers compare each selected year against the 2015 baseline, with red areas showing warming and blue areas showing cooling relative to 2015.
+                </figcaption>
+            </figure>
+
+            <p>Design Decisions and Rationale:</p>
+
+            <ul>
+                <li>
+                    <strong>Using 2015 as the baseline year.</strong>
+                    We compare each year to 2015 so the map emphasizes temperature change over time rather than raw temperature. This makes the visualization easier to interpret because viewers can focus on warming or cooling patterns instead of comparing absolute temperatures across different regions.
+                </li>
+                <li>
+                    <strong>Using a red-blue color scale for anomalies.</strong>
+                    Red is used to represent warmer-than-baseline areas, while blue represents cooler-than-baseline areas. This color choice is intuitive for temperature data and helps users quickly recognize where the strongest warming appears.
+                </li>
+                <li>
+                    <strong>Adding interactivity through a year slider and tooltip.</strong>
+                    The slider lets users move through time and observe spatial changes year by year. The tooltip provides specific coordinates and anomaly values, giving both a broad global overview and detailed local information.
+                </li>
+            </ul>
+        </section>
+
+        <section>
+            <h2>Final Reflection</h2>
+
+            <p>
+                Building this visualization showed us how much visual storytelling depends on framing. Even when using climate model data, the choices we make about baseline year, color scale, projection, and interaction design all shape how the viewer understands the pattern. By using 2015 as a baseline, the map focuses attention on change over time rather than raw temperature differences between naturally hot and cold regions.
+            </p>
+
+            <p>
+                The most important ethical design choice was making the comparison clear. A temperature anomaly map can be misleading if viewers do not understand what the colors are being compared against. That is why the title, legend, tooltip, and caption all state that the values represent change since 2015. This helps prevent readers from interpreting the colors as absolute temperatures.
+            </p>
+
+            <p>
+                Overall, this project helped us see that an effective visualization should be both persuasive and transparent. The map is designed to make warming patterns visually noticeable, but it also gives users enough context to understand what the data actually represents.
+            </p>
+        </section>
+    </main>
+
+    <script>
+        const width = 1000;
+        const height = 600;
+
+        const svg = d3.select("#map-container")
+            .append("svg")
+            .attr("width", width)
+            .attr("height", height)
+            .attr("viewBox", `0 0 ${width} ${height}`)
+            .attr("preserveAspectRatio", "xMidYMid meet");
+
+        const g = svg.append("g");
+        const tooltip = d3.select("#tooltip");
+
+        const projection = d3.geoEquirectangular()
+            .center([0, 45])
+            .rotate([100, 0])
+            .scale(450)
+            .translate([width / 2, height / 2]);
+
+        const path = d3.geoPath().projection(projection);
+
+        const zoom = d3.zoom()
+            .scaleExtent([1, 8])
+            .on("zoom", (event) => g.attr("transform", event.transform));
+
+        svg.call(zoom);
+
+       Promise.all([
+            d3.json("https://raw.githubusercontent.com/holtzy/D3-graph-gallery/master/DATA/world.geojson"),
+            d3.csv("cesm2_ssp585_yearly_2015_2025.csv") // MAKE SURE THIS MATCHES YOUR NEW FILE NAME
+        ]).then(function(loadData) {
+            
+            const topo = loadData[0];
+            let masterData = loadData[1];
+
+            // Clean data
+            masterData.forEach(d => {
+                d.year = +d.year;
+                d.lat = +d.lat;
+                d.lon = +d.lon;
+                d.temperature_C = +d.temperature_C;
+                if (d.lon > 180) { d.lon -= 360; }
+            });
+
+            const colorScale = d3.scaleSequential(d3.interpolateRdBu)
+                .domain([3, -3]);
+
+            g.selectAll("path")
+                .data(topo.features)
+                .enter()
+                .append("path")
+                .attr("class", "country")
+                .attr("d", path);
+
+            function updateMap(selectedYear) {
+                const yearData = masterData.filter(d => d.year === selectedYear);
+                const baselineData = masterData.filter(d => d.year === 2015);
+
+                const baselineLookup = {};
+                baselineData.forEach(b => {
+                    baselineLookup[`${b.lat}-${b.lon}`] = b.temperature_C;
+                });
+
+                const points = g.selectAll(".grid-point")
+                    .data(yearData, d => `${d.lat}-${d.lon}`);
+
+                points.enter()
+                    .append("rect")
+                    .attr("class", "grid-point")
+                    .attr("x", d => projection([d.lon, d.lat])[0] - 1.5)
+                    .attr("y", d => projection([d.lon, d.lat])[1] - 1.5)
+                    .attr("width", 3)
+                    .attr("height", 3)
+                    .attr("fill", function(d) {
+                        const baseTemp = baselineLookup[`${d.lat}-${d.lon}`];
+                        return colorScale(d.temperature_C - baseTemp);
+                    })
+                    .on("mouseover", function(event, d) {
+                        const baseTemp = baselineLookup[`${d.lat}-${d.lon}`];
+                        const anomaly = (d.temperature_C - baseTemp).toFixed(2);
+                        const anomalyText = anomaly > 0 ? `+${anomaly}` : anomaly;
+
+                        tooltip.style("opacity", 1)
+                            .html(`
+                                <strong>Year:</strong> ${d.year}<br>
+                                <strong>Coordinates:</strong> ${d.lat.toFixed(2)}°, ${d.lon.toFixed(2)}°<br>
+                                <strong>Change since 2015:</strong> ${anomalyText} °C
+                            `);
+
+                        d3.select(this).raise();
+                    })
+                    .on("mousemove", function(event) {
+                        const [mouseX, mouseY] = d3.pointer(event, d3.select("#map-container").node());
+                        tooltip
+                            .style("left", (mouseX + 15) + "px")
+                            .style("top", (mouseY - 20) + "px");
+                    })
+                    .on("mouseout", function() {
+                        tooltip.style("opacity", 0);
+                    })
+                    .merge(points)
+                    .transition()
+                    .duration(300)
+                    .attr("fill", function(d) {
+                        const baseTemp = baselineLookup[`${d.lat}-${d.lon}`];
+                        return colorScale(d.temperature_C - baseTemp);
+                    });
+            }
+
+            updateMap(2015);
+
+            d3.select("#year-slider").on("input", function() {
+                const selectedYear = +this.value;
+                d3.select("#year-display").text(selectedYear);
+                updateMap(selectedYear);
+            });
+
+            const legend = svg.append("g")
+                .attr("class", "legend")
+                .attr("transform", `translate(20, ${height - 40})`);
+
+            const legendWidth = 200;
+            const defs = svg.append("defs");
+            const linearGradient = defs.append("linearGradient")
+                .attr("id", "linear-gradient");
+
+            linearGradient.selectAll("stop")
+                .data(d3.range(0, 1.01, 0.1))
+                .enter()
+                .append("stop")
+                .attr("offset", d => d * 100 + "%")
+                .attr("stop-color", d => colorScale(-3 + d * 6));
+
+            legend.append("rect")
+                .attr("width", legendWidth)
+                .attr("height", 10)
+                .style("fill", "url(#linear-gradient)");
+
+            legend.append("text")
+                .attr("x", 0)
+                .attr("y", -5)
+                .text("-3°C");
+
+            legend.append("text")
+                .attr("x", legendWidth)
+                .attr("y", -5)
+                .attr("text-anchor", "end")
+                .text("+3°C");
+
+            legend.append("text")
+                .attr("x", legendWidth / 2)
+                .attr("y", 25)
+                .attr("text-anchor", "middle")
+                .text("Temperature Anomaly Change Since 2015");
+        }).catch(err => {
+            console.error("Error loading data:", err);
+            d3.select("#map-container")
+                .append("p")
+                .style("color", "white")
+                .style("padding", "1rem")
+                .text("Error loading visualization data. Make sure cesm2_ssp585_yearly_2015_2025.csv is in the same folder as this HTML file.");
+        });
+    </script>
+</body>
+</html>
