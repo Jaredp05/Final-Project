@@ -248,38 +248,56 @@
                 </figcaption>
             </figure>
 
-            <p>Design Decisions and Rationale:</p>
-
-            <ul>
-                <li>
-                    <strong>Using 2015 as the baseline year.</strong>
-                    We compare each year to 2015 so the map emphasizes temperature change over time rather than raw temperature. This makes the visualization easier to interpret because viewers can focus on warming or cooling patterns instead of comparing absolute temperatures across different regions.
-                </li>
-                <li>
-                    <strong>Using a red-blue color scale for anomalies.</strong>
-                    Red is used to represent warmer-than-baseline areas, while blue represents cooler-than-baseline areas. This color choice is intuitive for temperature data and helps users quickly recognize where the strongest warming appears.
-                </li>
-                <li>
-                    <strong>Adding interactivity through a year slider and tooltip.</strong>
-                    The slider lets users move through time and observe spatial changes year by year. The tooltip provides specific coordinates and anomaly values, giving both a broad global overview and detailed local information.
-                </li>
-            </ul>
+           
         </section>
 
         <section>
             <h2>Final Reflection</h2>
 
-            <p>
-                Building this visualization showed us how much visual storytelling depends on framing. Even when using climate model data, the choices we make about baseline year, color scale, projection, and interaction design all shape how the viewer understands the pattern. By using 2015 as a baseline, the map focuses attention on change over time rather than raw temperature differences between naturally hot and cold regions.
-            </p>
+            <p>We began this project by loading the CMIP6 Data Catalog and exploring some potential avenues
+for data representation. We noticed there was ample data for precipitation and temperature data
+after making visualizations. A couple team members made visualizations of how much data was
+available in the database and the other team members made visualizations of the data itself.
+When deciding which category to explore, we found that the database lended itself more towards
+long term representations of temperature rather than precipitation. We deduced that the
+visualization would be more useful for displaying temperature data as it would give a better
+perspective of change over a long period of time.
+We felt that geospatial representation would be best for this visualization. It provides a really
+appealing and easily understandable visual for temperature. It’s also conventional in the sense
+that weather is often displayed on a map. After deciding this, we began to split the work. Half of
+the team queried the database and formatted the csv file for use
+(cesm2_ssp585_yearly_2015_2025.csv). Then the other half of the team began work on the
+geospatial visualization in D3.js.
+To begin composing the csv file, we formatted our query to attain the temperature data on a
+monthly frequency from 2015 - 2025. After formatting the query, we used the xarray and zarr
+libraries to request the database for the data as well as the metadata. Then we averaged the data
+per year and converted some metrics, such as Celsius to Fahrenheit, and formatted the datetime
+stamps. Then we dropped all unnecessary metrics, keeping only latitude, longitude, and
+temperature. Finally, the csv was ready to be exported and used in D3.js. This portion of the
+project took roughly 2 - 3 hours.
+For the visualization, we decided to simplify the visualization to reduce computation load. So,
+we utilized a visualization method that overlaid a dot map atop of a Meridian, geographical map.
+The map was then initialized to focus on the North American region, again to reduce
+computation load. Although, the user was still given the ability to move and zoom on the map.
+These dots would then change color based on relative temperature anomalies. It’s important to
+note that the dots do not display overall temperature changes over time. We initially attempted to
+implement this visualization in this way but the visualization was hard to conceptualize because
+the dots did not change color that much. This was because on average, the relative change in
+temperature was slight. We explored attempts to change the range of color but again this was
+unintuitive since we were displaying such a large geographical region (North America). There
+were already large variations of temperature across the region so changing the color range wasn’t
+satisfactory for our project goal. So instead, we settled on displaying temperature anomalies.
+Which essentially visualized moments when there were above average temperature changes in
+the area. This visualization could not only be zone specific but also give the viewer a sense of the
 
-            <p>
-                The most important ethical design choice was making the comparison clear. A temperature anomaly map can be misleading if viewers do not understand what the colors are being compared against. That is why the title, legend, tooltip, and caption all state that the values represent change since 2015. This helps prevent readers from interpreting the colors as absolute temperatures.
-            </p>
-
-            <p>
-                Overall, this project helped us see that an effective visualization should be both persuasive and transparent. The map is designed to make warming patterns visually noticeable, but it also gives users enough context to understand what the data actually represents.
-            </p>
+magnitude of the change, which was the initial goal of our project. This portion of the project
+was the most indepth and took roughly 5 hours. The change from displaying overall temperature
+to displaying temperature changes was the most involved. This was because we not only had to
+experiment with different scaling strategies, but also with different means of representation. Each
+requiring their own conversions and tweaks.
+The final visualization depicted is an interactive map of temperature anomalies across North
+America as well as the broader globe from 2015 - 2025. Deeper red dots indicate large time
+periods of unusual heating while deeper blue dots indicate unusual cooling.</p>
         </section>
     </main>
 
@@ -449,3 +467,4 @@
     </script>
 </body>
 </html>
+
